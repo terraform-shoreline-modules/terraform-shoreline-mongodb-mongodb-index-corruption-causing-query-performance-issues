@@ -1,0 +1,130 @@
+{
+  "name": "mongodb_index_corruption_causing_query_performance_issues",
+  "description": "This incident type refers to a problem in a MongoDB database where the index becomes corrupted, causing a significant decrease in query performance. This can result in slow query times, timeouts, or even complete failure to retrieve data. This issue can affect any application or service that relies on the affected MongoDB database. It is important to resolve this issue quickly to minimize the impact on end-users and ensure the reliability of the affected application or service.",
+  "params": [
+    {
+      "name": "COLLECTION_NAME",
+      "value": ""
+    },
+    {
+      "name": "DB_NAME",
+      "value": ""
+    },
+    {
+      "name": "DATABASE_NAME",
+      "value": ""
+    },
+    {
+      "name": "BACKUP_DIRECTORY",
+      "value": ""
+    },
+    {
+      "name": "DATABASE_HOST",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## MongoDB index corruption causing query performance issues.\nThis incident type refers to a problem in a MongoDB database where the index becomes corrupted, causing a significant decrease in query performance. This can result in slow query times, timeouts, or even complete failure to retrieve data. This issue can affect any application or service that relies on the affected MongoDB database. It is important to resolve this issue quickly to minimize the impact on end-users and ensure the reliability of the affected application or service."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check MongoDB version"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `mongod --version`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check MongoDB log for any error messages"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `tail -f /var/log/mongodb/mongod.log`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check MongoDB server status"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `mongo ${DB_NAME} --eval \"printjson(db.serverStatus())\"`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the status of all indexes on a specific collection"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `mongo ${DB_NAME} --eval \"printjson(db.${COLLECTION_NAME}.getIndexes())\"`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Repair corrupted indexes on a specific collection"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `mongo ${DB_NAME} --eval \"db.${COLLECTION_NAME}.repair()\"`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Perform a complete backup of the database before attempting any remediation procedures."
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_backup_script($DB_NAME, $DATABASE_NAME, $BACKUP_DIRECTORY, $DATABASE_HOST)"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## If the index corruption is not easily fixable, consider rebuilding the indexes from scratch. This can be done using the \"reindex\" command in MongoDB."
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_rebuild_indexes($COLLECTION_NAME, $DB_NAME, $DATABASE_NAME)"
+    }
+  ]
+}
